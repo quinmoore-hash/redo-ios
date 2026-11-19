@@ -222,4 +222,44 @@ enum MockData {
         Template(name: "Restock alert", body: "Hi {first_name}! I've added you to the restock list, so you'll get a text as soon as it's back."),
         Template(name: "Thanks for reaching out", body: "Thanks for reaching out, {first_name}! Let me know if there's anything else I can help with."),
     ]
+
+    static func aiDraft(for t: Ticket) -> String {
+        let c = t.customer
+        let name = c.name == "Unknown Customer" ? "" : c.firstName
+        let hi = name.isEmpty ? "Hi there!" : "Hi \(name)!"
+        let text = (t.messages.last(where: { $0.kind == .customer })?.text ?? "").lowercased()
+        let has = { (words: [String]) in words.contains { text.contains($0) } }
+        let tagged = { (tag: String) in t.tags.contains(tag) }
+        let order = c.orders.first
+        let items = { (o: Order) in o.products.map(\.name).joined(separator: " and ") }
+
+        if tagged("Exchange") || has(["exchange", "too tight", "too small", "keep the old"]),
+           let r = c.returns.first(where: { $0.kind == "Exchange" }) {
+            let keep = has(["keep"]) ? " And yes, keep your current pair until the new one arrives, just send them back within 14 days." : ""
+            return "\(hi) Your exchange for order \(r.orderNumber) is all set. We'll ship your new \(r.products.map(\.name).joined(separator: " and ")) as soon as your return is scanned, no refund wait.\(keep)"
+        }
+        if has(["damaged", "crushed", "bent", "broken"]) || tagged("Damaged") {
+            return "\(hi) So sorry your order arrived damaged. Your package protection covers it, so I've filed a claim and a replacement is on the way."
+        }
+        if has(["tracking", "where is", "hasn't moved"]) || tagged("Shipping delay"),
+           let o = c.orders.first(where: { $0.status == "In transit" }) ?? order {
+            return "\(hi) I just checked tracking for order \(o.number) (\(items(o))) and it's on the way. It's due in the next couple of days, and you'll get a text the moment it's out for delivery."
+        }
+        if has(["return", "label", "refund"]) || tagged("Wrong size") {
+            if let r = c.returns.first(where: { $0.status != "Complete" }) {
+                return "\(hi) Sorry about that! I've sent a fresh return label for order \(r.orderNumber) to your email. It's good at any UPS location, and your \(r.resolution.lowercased()) starts as soon as it's scanned."
+            }
+            return "\(hi) You can return anything within 30 days of delivery, sale items included. Just start a return on our returns page and we'll email you a free label."
+        }
+        if has(["restock", "back in stock", "drops", "navy"]) {
+            return "\(hi) I've added you to the restock list, so you'll get a text as soon as it's back."
+        }
+        if has(["wholesale", "volume", "bulk"]) || tagged("Wholesale") {
+            return "\(hi) Thanks for thinking of us for your team. We offer volume pricing on orders of 25+ units, so I'll send a wholesale quote for your order to \(c.email) today."
+        }
+        if let o = order {
+            return "Thanks for reaching out\(name.isEmpty ? "" : ", \(name)")! I'm looking at order \(o.number) now and will follow up shortly. Let me know if there's anything else I can help with."
+        }
+        return "Thanks for reaching out\(name.isEmpty ? "" : ", \(name)")! I'm looking into this now and will follow up shortly. Let me know if there's anything else I can help with."
+    }
 }
