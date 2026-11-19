@@ -10,6 +10,7 @@ struct TicketView: View {
     @Environment(\.dismiss) private var dismiss
     let ticketID: UUID
     @State private var draft = ""
+    @State private var aiDraft: String?
     @State private var isNote = false
     @State private var sheet: TicketSheet?
 
@@ -94,23 +95,30 @@ struct TicketView: View {
 
     func composer(_ t: Ticket) -> some View {
         VStack(alignment: .leading, spacing: 10) {
-            Menu {
-                Button { isNote = false } label: { Label("Reply", systemImage: "text.bubble") }
-                Button { isNote = true } label: { Label("Internal note", systemImage: "note.text") }
-            } label: {
-                HStack(spacing: 8) {
-                    Image(systemName: isNote ? "note.text" : "text.bubble")
-                    Text(isNote ? "Internal note" : "Reply").font(.system(size: 16, weight: .medium))
-                    Image(systemName: "chevron.down").font(.system(size: 12, weight: .semibold))
+            HStack {
+                Menu {
+                    Button { isNote = false } label: { Label("Reply", systemImage: "text.bubble") }
+                    Button { isNote = true } label: { Label("Internal note", systemImage: "note.text") }
+                } label: {
+                    HStack(spacing: 8) {
+                        Image(systemName: isNote ? "note.text" : "text.bubble")
+                        Text(isNote ? "Internal note" : "Reply").font(.system(size: 16, weight: .medium))
+                        Image(systemName: "chevron.down").font(.system(size: 12, weight: .semibold))
+                    }
+                    .foregroundStyle(Color(white: 0.25))
                 }
-                .foregroundStyle(Color(white: 0.25))
+                .padding(.leading, 12)
+                Spacer()
+                if aiDraft != nil {
+                    Chip(text: "Drafted by Commerce Agent", icon: "sparkles", fg: .redoPurple, bg: .redoLavender, border: .redoPurple.opacity(0.3))
+                }
             }
-            .padding(.leading, 12)
 
             ZStack(alignment: .topLeading) {
                 TextEditor(text: $draft)
                     .scrollContentBackground(.hidden)
                     .padding(6)
+                    .onChange(of: draft) { if draft != aiDraft { aiDraft = nil } }
                 if draft.isEmpty {
                     Text(isNote ? "Add a note for your team..." : "Start typing...").foregroundStyle(Color(white: 0.6)).padding(.horizontal, 11).padding(.vertical, 14)
                         .allowsHitTesting(false)
@@ -123,6 +131,13 @@ struct TicketView: View {
             HStack(spacing: 22) {
                 Image(systemName: "paperclip")
                 Button { sheet = .templates } label: { Image(systemName: "bolt") }
+                Button {
+                    isNote = false
+                    let text = MockData.aiDraft(for: t)
+                    aiDraft = text
+                    draft = text
+                } label: { Image(systemName: "sparkles").foregroundStyle(Color.redoPurple) }
+                    .accessibilityLabel("AI draft")
                 Spacer()
                 let ready = !draft.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty
                 Button(action: send) {
