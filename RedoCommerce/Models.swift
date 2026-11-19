@@ -245,7 +245,7 @@ enum MockData {
             return "\(hi) So sorry your order arrived damaged. Your package protection covers it, so I've filed a claim and a replacement is on the way."
         }
         if has(["tracking", "where is", "hasn't moved"]) || tagged("Shipping delay"),
-           let o = c.orders.first(where: { $0.status == "In transit" }) ?? order {
+           let o = c.orders.first(where: { $0.status == "In transit" }) {
             return "\(hi) I just checked tracking for order \(o.number) (\(items(o))) and it's on the way. It's due in the next couple of days, and you'll get a text the moment it's out for delivery."
         }
         if has(["thank"]) {
