@@ -35,7 +35,8 @@ struct TicketView: View {
                 composer(ticket)
             }
             .toolbar(.hidden, for: .navigationBar)
-            .toolbar(.hidden, for: .tabBar)
+            .onAppear { store.inTicket = true }
+            .onDisappear { store.inTicket = false }
             .sheet(item: $sheet) { s in
                 switch s {
                 case .details: DetailsView(ticketID: ticketID)

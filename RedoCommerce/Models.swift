@@ -107,6 +107,7 @@ func money(_ v: Double) -> String { v.formatted(.currency(code: "USD")) }
 
 final class AppStore: ObservableObject {
     @Published var signedIn = false
+    @Published var inTicket = false
     @Published var storeHandle = "court-and-field"
     @Published var tickets: [Ticket] = MockData.tickets
     let agent = "Harrison Burgess"

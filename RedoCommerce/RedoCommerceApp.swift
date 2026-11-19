@@ -27,26 +27,34 @@ struct RootView: View {
 }
 
 struct MainTabView: View {
+    @EnvironmentObject var store: AppStore
+    @State private var tab = 0
+
     var body: some View {
-        TabView {
-            InboxView()
-                .tabItem { Label("Inbox", systemImage: "text.bubble.fill") }
-            ProfileView()
-                .tabItem { Label("Profile", systemImage: "person") }
-        }
-        .tint(.white)
-        .onAppear {
-            let a = UITabBarAppearance()
-            a.configureWithOpaqueBackground()
-            a.backgroundColor = .black
-            for item in [a.stackedLayoutAppearance, a.inlineLayoutAppearance, a.compactInlineLayoutAppearance] {
-                item.normal.iconColor = .gray
-                item.normal.titleTextAttributes = [.foregroundColor: UIColor.gray]
-                item.selected.iconColor = .white
-                item.selected.titleTextAttributes = [.foregroundColor: UIColor.white]
+        VStack(spacing: 0) {
+            ZStack {
+                InboxView().opacity(tab == 0 ? 1 : 0)
+                if tab == 1 { ProfileView() }
             }
-            UITabBar.appearance().standardAppearance = a
-            UITabBar.appearance().scrollEdgeAppearance = a
+            if !store.inTicket {
+                HStack {
+                    tabButton(0, "Inbox", "text.bubble.fill")
+                    tabButton(1, "Profile", "person")
+                }
+                .padding(.top, 10)
+                .background(Color.black.ignoresSafeArea(edges: .bottom))
+            }
+        }
+    }
+
+    func tabButton(_ index: Int, _ title: String, _ icon: String) -> some View {
+        Button { tab = index } label: {
+            VStack(spacing: 4) {
+                Image(systemName: icon).font(.system(size: 20))
+                Text(title).font(.system(size: 13, weight: .semibold))
+            }
+            .foregroundStyle(tab == index ? Color.white : Color.gray)
+            .frame(maxWidth: .infinity)
         }
     }
 }
