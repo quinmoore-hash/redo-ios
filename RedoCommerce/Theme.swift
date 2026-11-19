@@ -12,22 +12,28 @@ extension Color {
     static let redoMuted = Color(white: 0.45)
 }
 
-struct RedoMark: Shape {
-    func path(in r: CGRect) -> Path {
-        var p = Path()
-        let top = r.width * 0.40
-        let bottom = r.width * 0.5
-        p.addEllipse(in: CGRect(x: r.midX - top, y: r.minY, width: top * 2, height: top * 2))
-        p.addEllipse(in: CGRect(x: r.midX - bottom, y: r.maxY - bottom * 2, width: bottom * 2, height: bottom * 2))
-        let neckTop = r.minY + top
-        let neckBottom = r.maxY - bottom
-        let waist = r.width * 0.12
-        p.move(to: CGPoint(x: r.midX - top * 0.7, y: neckTop))
-        p.addQuadCurve(to: CGPoint(x: r.midX - bottom * 0.7, y: neckBottom), control: CGPoint(x: r.midX - waist, y: (neckTop + neckBottom) / 2))
-        p.addLine(to: CGPoint(x: r.midX + bottom * 0.7, y: neckBottom))
-        p.addQuadCurve(to: CGPoint(x: r.midX + top * 0.7, y: neckTop), control: CGPoint(x: r.midX + waist, y: (neckTop + neckBottom) / 2))
-        p.closeSubpath()
-        return p
+struct RedoMark: View {
+    var body: some View {
+        GeometryReader { g in
+            let w = g.size.width, h = g.size.height
+            ZStack {
+                Circle().frame(width: w * 0.8, height: w * 0.8).position(x: w / 2, y: w * 0.4)
+                Circle().frame(width: w, height: w).position(x: w / 2, y: h - w / 2)
+                Neck().frame(width: w, height: h - w * 0.9).position(x: w / 2, y: w * 0.4 + (h - w * 0.9) / 2)
+            }
+        }
+    }
+
+    private struct Neck: Shape {
+        func path(in r: CGRect) -> Path {
+            var p = Path()
+            p.move(to: CGPoint(x: r.minX + r.width * 0.18, y: r.minY))
+            p.addQuadCurve(to: CGPoint(x: r.minX + r.width * 0.12, y: r.maxY), control: CGPoint(x: r.midX - r.width * 0.12, y: r.midY))
+            p.addLine(to: CGPoint(x: r.maxX - r.width * 0.12, y: r.maxY))
+            p.addQuadCurve(to: CGPoint(x: r.maxX - r.width * 0.18, y: r.minY), control: CGPoint(x: r.midX + r.width * 0.12, y: r.midY))
+            p.closeSubpath()
+            return p
+        }
     }
 }
 
