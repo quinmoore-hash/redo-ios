@@ -248,6 +248,9 @@ enum MockData {
            let o = c.orders.first(where: { $0.status == "In transit" }) ?? order {
             return "\(hi) I just checked tracking for order \(o.number) (\(items(o))) and it's on the way. It's due in the next couple of days, and you'll get a text the moment it's out for delivery."
         }
+        if has(["thank"]) {
+            return "You're so welcome\(name.isEmpty ? "" : ", \(name)")! Let me know if there's anything else I can help with."
+        }
         if has(["return", "label", "refund"]) || tagged("Wrong size") {
             if let r = c.returns.first(where: { $0.status != "Complete" }) {
                 return "\(hi) Sorry about that! I've sent a fresh return label for order \(r.orderNumber) to your email. It's good at any UPS location, and your \(r.resolution.lowercased()) starts as soon as it's scanned."
