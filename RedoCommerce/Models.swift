@@ -235,8 +235,11 @@ enum MockData {
 
         if tagged("Exchange") || has(["exchange", "too tight", "too small", "keep the old"]),
            let r = c.returns.first(where: { $0.kind == "Exchange" }) {
-            let keep = has(["keep"]) ? " And yes, keep your current pair until the new one arrives, just send them back within 14 days." : ""
-            return "\(hi) Your exchange for order \(r.orderNumber) is all set. We'll ship your new \(r.products.map(\.name).joined(separator: " and ")) as soon as your return is scanned, no refund wait.\(keep)"
+            let items = r.products.map(\.name).joined(separator: " and ")
+            if has(["keep"]) {
+                return "\(hi) Your exchange for order \(r.orderNumber) is all set. We'll ship your new \(items) today, so keep your current pair until it arrives and send them back within 14 days."
+            }
+            return "\(hi) Your exchange for order \(r.orderNumber) is all set. We'll ship your new \(items) as soon as your return is scanned, no refund wait."
         }
         if has(["damaged", "crushed", "bent", "broken"]) || tagged("Damaged") {
             return "\(hi) So sorry your order arrived damaged. Your package protection covers it, so I've filed a claim and a replacement is on the way."
